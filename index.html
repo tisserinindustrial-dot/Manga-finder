@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MangaFinder — Vidéos & Lecture</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#08080d;color:#fff;font-family:Arial,sans-serif}
+header{position:sticky;top:0;z-index:10;background:#101018ee;backdrop-filter:blur(10px);border-bottom:1px solid #292936;padding:13px 5%;display:flex;gap:10px;align-items:center}
+.logo{font-size:21px;font-weight:800;margin-right:auto}.logo span{color:#a43cff}
+button{cursor:pointer}.btn{background:#9634e8;color:white;border:0;border-radius:9px;padding:10px 15px}.nav{background:transparent;color:#aaa;border:0;padding:8px}
+main{padding:35px 6% 90px;max-width:1200px;margin:auto}.hero{padding:25px 0 35px}h1{font-size:44px;margin:0 0 10px}.purple{color:#a43cff}.muted{color:#999}
+.search{display:flex;max-width:850px;background:#12121b;border:1px solid #8d35c4;border-radius:12px;padding:6px}.search input{flex:1;background:transparent;color:#fff;border:0;outline:0;padding:13px}.search button{background:#9634e8;color:#fff;border:0;border-radius:8px;padding:0 18px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card{background:#111119;border:1px solid #292934;border-radius:12px;padding:15px}.card h3{margin:9px 0}.card p{color:#aaa;line-height:1.5}.pill{display:inline-block;background:#252532;color:#bbb;border-radius:20px;padding:5px 8px;font-size:11px;margin:2px}.card button{width:100%;padding:9px;background:#191923;border:1px solid #373744;color:#fff;border-radius:8px;margin-top:12px}
+.panel{background:#111119;border:1px solid #292934;border-radius:14px;padding:22px;margin-top:20px}.form{max-width:700px}.form input,.form textarea,.form select{width:100%;padding:12px;margin:7px 0 14px;background:#08080d;color:#fff;border:1px solid #333;border-radius:8px}.form textarea{min-height:130px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{background:#15151e;border:1px solid #292934;border-radius:10px;padding:17px}.big{font-size:25px;font-weight:bold;margin-top:5px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.secondary{background:#191923;color:#fff;border:1px solid #333;border-radius:8px;padding:9px 12px}
+.notice{background:#171722;border-left:3px solid #a43cff;padding:12px;color:#aaa;margin:15px 0}.hide{display:none}.empty{padding:30px;text-align:center;color:#888}
+.profile{max-width:900px;margin:auto}.profileTop{text-align:center;padding:15px}.avatar{width:90px;height:90px;border-radius:50%;background:#a43cff;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:bold;margin:auto;border:3px solid #2de2ff}
+.profileName{font-size:25px;font-weight:800;margin-top:10px}.handle{color:#999}.bio{max-width:500px;margin:10px auto;color:#bbb}.profileStats{display:flex;justify-content:center;gap:35px;margin:20px 0}.profileStats b{display:block;font-size:22px}.profileStats span{color:#999}
+.tabs{display:flex;border-bottom:1px solid #292936;margin-top:20px}.tab{flex:1;background:none;border:0;color:#aaa;padding:14px}.tab.active{color:#fff;border-bottom:2px solid #a43cff}
+.videoCard{background:#111119;border:1px solid #292934;border-radius:12px;overflow:hidden}.thumb{height:160px;background:linear-gradient(135deg,#21103c,#5412a0,#111);display:flex;align-items:center;justify-content:center;font-size:45px}.videoInfo{padding:13px}.videoInfo h3{margin:0 0 7px}.videoMeta{color:#888;font-size:12px}.videoStats{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.videoStats button{background:#191923;color:#fff;border:1px solid #333;border-radius:8px;padding:7px 9px}.videoStats button.liked{border-color:#a43cff;background:#251331}
+.player{background:#000;border-radius:12px;overflow:hidden;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:70px}.player video{width:100%;height:100%;display:none}.watchTitle{font-size:25px;margin-top:18px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#101018;border-top:1px solid #292936;display:flex;justify-content:space-around;padding:8px;z-index:20}.bottom button{background:none;border:0;color:#aaa;font-size:12px}.bottom .plus{font-size:25px;color:#fff;background:#9634e8;border-radius:12px;padding:3px 12px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:500px){h1{font-size:35px}.grid{grid-template-columns:1fr}.search{flex-direction:column}.search button{height:42px}.nav{display:none}.profileStats{gap:18px}.profileStats b{font-size:18px}}
+</style>
+<style>
+.videoFeed{height:calc(100vh - 155px);min-height:500px;overflow-y:auto;scroll-snap-type:y mandatory;border-radius:14px;background:#050507}
+.feedItem{height:100%;min-height:500px;position:relative;scroll-snap-align:start;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.feedItem video,.feedItem img{width:100%;height:100%;object-fit:contain}
+.feedOverlay{position:absolute;left:0;right:0;bottom:0;padding:70px 85px 25px 20px;background:linear-gradient(transparent,rgba(0,0,0,.88));z-index:2}
+.feedTitle{font-size:20px;font-weight:800;margin-bottom:7px}.feedAuthor{color:#ddd}
+.feedActions{position:absolute;right:12px;bottom:25px;display:flex;flex-direction:column;gap:10px;z-index:3}
+.feedActions button{width:48px;height:48px;border-radius:50%;border:0;background:#191923dd;color:#fff;font-size:20px}
+.rotateBar{display:flex;gap:8px;justify-content:flex-end;margin:8px 0}.rotateBar button{background:#191923;color:#fff;border:1px solid #333;border-radius:8px;padding:8px 11px}
+.mediaPreview{margin:10px 0;border:1px solid #333;border-radius:10px;padding:10px;background:#0d0d14}.mediaPreview img,.mediaPreview video{max-width:100%;max-height:250px;border-radius:8px;display:block;margin:auto}
+.orientationHint{font-size:12px;color:#888;margin-top:8px}
+@media(max-width:700px){.videoFeed{height:calc(100vh - 175px)}.feedOverlay{padding-right:75px}.feedItem{min-height:450px}}
+</style>
+
+
+<style>
+.iconBtn{background:#191923;border:1px solid #333;color:#fff;border-radius:9px;padding:9px 11px}
+.topActions{display:flex;gap:7px;align-items:center}
+.badge{display:inline-block;min-width:18px;padding:2px 5px;border-radius:10px;background:#e73569;color:#fff;font-size:10px;text-align:center}
+.profileEdit{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.commentBox{display:flex;gap:8px;margin-top:15px}.commentBox input{flex:1;background:#09090f;border:1px solid #333;color:#fff;border-radius:8px;padding:11px}
+.comment{padding:10px 0;border-bottom:1px solid #25252e}.comment b{font-size:13px}.comment span{color:#aaa;font-size:13px}
+.menuPanel{position:fixed;right:12px;top:62px;background:#15151e;border:1px solid #333;border-radius:12px;padding:8px;z-index:50;min-width:190px;box-shadow:0 10px 30px #0008}
+.menuPanel button{display:block;width:100%;text-align:left;background:none;border:0;color:#fff;padding:11px;border-radius:7px}.menuPanel button:hover{background:#242431}
+.notification{padding:12px;border-bottom:1px solid #292936}.notification.unread{background:#171722}
+.creatorTools{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}.tool{background:#15151e;border:1px solid #292936;border-radius:10px;padding:15px}
+.progress{height:8px;background:#292936;border-radius:20px;overflow:hidden}.progress i{display:block;height:100%;background:#a43cff}
+.historyItem{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #292936}.miniThumb{width:90px;height:55px;background:#222;border-radius:7px;display:flex;align-items:center;justify-content:center}
+@media(max-width:650px){.profileEdit{grid-template-columns:1fr}.creatorTools{grid-template-columns:1fr 1fr}}
+.followRow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #292936}.followAvatar{width:44px;height:44px;border-radius:50%;background:#9634e8;display:flex;align-items:center;justify-content:center;font-weight:800}.followInfo{flex:1}.followInfo small{color:#888}
+</style>
+
+<style id="creatorFeedStyle">
+.creator-feed{display:flex;flex-direction:column;gap:18px;margin-top:16px}
+.creator-video{position:relative;background:#050509;border:1px solid #24242d;border-radius:20px;overflow:hidden;min-height:560px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.creator-video .video-stage{height:560px;position:relative;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#15151d,#09090d);overflow:hidden}
+.creator-video video,.creator-video img{width:100%;height:100%;object-fit:cover}
+.creator-video .video-placeholder{font-size:64px;opacity:.7}
+.creator-gradient{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.05) 55%,rgba(0,0,0,.25))}
+.creator-top{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;justify-content:space-between;z-index:3}
+.creator-tabs{display:flex;gap:20px;align-items:center;color:#aaa;font-weight:700;font-size:16px}
+.creator-tabs .active{color:#fff;border-bottom:2px solid #fff;padding-bottom:7px}
+.creator-search{background:#15151d;border:1px solid #333;color:#fff;border-radius:50%;width:42px;height:42px}
+.creator-side{position:absolute;right:12px;bottom:118px;display:flex;flex-direction:column;gap:14px;z-index:4;align-items:center}
+.creator-side button{border:0;background:rgba(20,20,26,.75);color:#fff;border-radius:50%;width:48px;height:48px;font-size:21px}
+.creator-side button.liked{background:#8f2be2}
+.creator-side small{font-size:12px;color:#fff;font-weight:700;margin-top:-10px}
+.creator-bottom{position:absolute;left:16px;right:78px;bottom:18px;z-index:4}
+.creator-user{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.creator-avatar{width:42px;height:42px;border-radius:50%;background:#9b35e9;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;border:2px solid #fff}
+.creator-name{font-weight:800;color:#fff}
+.creator-follow{background:#9b35e9;border:0;color:#fff;border-radius:8px;padding:6px 10px;font-weight:700}
+.creator-caption{color:#fff;margin:0 0 7px;font-size:15px;line-height:1.35}
+.creator-tags{color:#ddd;font-size:13px}
+.creator-music{color:#ddd;font-size:12px;margin-top:6px}
+.creator-create{display:flex;align-items:center;gap:8px;background:#191923;border:1px solid #333;color:#fff;border-radius:12px;padding:9px 12px;margin:10px 0 0}
+@media(max-width:600px){
+ .creator-video{border-radius:14px;min-height:620px}
+ .creator-video .video-stage{height:620px}
+ .creator-tabs{gap:12px;font-size:14px}
+}
+</style>
+
+
+<style id="v10CreatorPublishStyle">
+.v10-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;display:none;align-items:flex-end;justify-content:center}
+.v10-modal.open{display:flex}
+.v10-sheet{width:min(680px,100%);background:#111118;border:1px solid #2d2d38;border-radius:24px 24px 0 0;padding:20px;color:#fff;max-height:90vh;overflow:auto}
+.v10-sheet h2{margin-top:0}
+.v10-input,.v10-textarea{width:100%;box-sizing:border-box;background:#1a1a24;color:#fff;border:1px solid #393945;border-radius:12px;padding:13px;margin:7px 0 13px;font-size:15px}
+.v10-textarea{min-height:90px;resize:vertical}
+.v10-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+.v10-btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700}
+.v10-primary{background:#9b35e9;color:#fff}
+.v10-secondary{background:#262631;color:#fff}
+.v10-preview{width:100%;max-height:300px;object-fit:cover;border-radius:15px;display:none;margin:8px 0}
+.v10-revenue{margin:12px 0;padding:16px;border:1px solid #2d2d38;border-radius:18px;background:#111118}
+.v10-revenue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.v10-stat{background:#1a1a24;border-radius:12px;padding:12px}
+.v10-stat b{display:block;font-size:20px;margin-top:5px}
+@media(max-width:520px){.v10-revenue-grid{grid-template-columns:1fr 1fr}}
+</style>
+
+
+<style id="premiumStyle">
+.premium-card{background:linear-gradient(135deg,#17101f,#111118);border:1px solid #7131a4;border-radius:18px;padding:18px;margin:14px 0}
+.premium-price{font-size:30px;font-weight:900;margin:8px 0}.premium-btn{background:#9b35e9;color:#fff;border:0;border-radius:12px;padding:11px 16px;font-weight:800}
+.premium-on{color:#c77dff;font-weight:800}
+</style>
+
+<style id="v12PaymentStyle">
+.v12-pay{max-width:700px;margin:0 auto}.v12-card{background:#12121a;border:1px solid #2d2d39;border-radius:20px;padding:18px;margin:14px 0}
+.v12-select,.v12-input{width:100%;box-sizing:border-box;background:#1b1b25;color:#fff;border:1px solid #3a3a47;border-radius:12px;padding:13px;margin:7px 0 14px}
+.v12-method{display:flex;align-items:center;gap:12px;background:#1b1b25;border:1px solid #30303b;border-radius:14px;padding:13px;margin:8px 0}
+.v12-method input{accent-color:#9b35e9}.v12-method b{display:block}.v12-muted{color:#999;font-size:12px}.v12-paybtn{width:100%;background:#9b35e9;color:#fff;border:0;border-radius:13px;padding:14px;font-weight:800;margin-top:10px}
+.v12-price{font-size:28px;font-weight:900}.v12-badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#2a1935;color:#d69aff;font-weight:800;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">MANGA<span>FINDER</span> ✦</div>
+<button class="nav" onclick="go('home')">Accueil</button>
+<button class="nav" onclick="go('videos')">🎬 Vidéos</button>
+<button class="nav" onclick="go('reading')">📖 Lecture</button>
+<button class="nav" onclick="go('authors')">👤 Auteurs</button>
+<div class="topActions">
+<button class="iconBtn" onclick="toggleNotifications()">🔔 <span id="notifBadge" class="badge">0</span></button>
+<button class="iconBtn" onclick="toggleMenu()">⋮</button>
+<button class="btn" onclick="go('account')">Compte</button>
+</div>
+</header>
+<div id="menuPanel" class="menuPanel hide">
+<button onclick="go('settings');closeMenus()">⚙️ Paramètres</button>
+<button onclick="go('history');closeMenus()">🕘 Historique</button>
+<button onclick="go('saved');closeMenus()">🔖 Enregistrés</button>
+<button onclick="reportApp();closeMenus()">🚩 Signaler un problème</button>
+</div>
+
+<main>
+<section id="home">
+<div class="hero">
+<h1>MangaFinder <span class="purple">Creators</span></h1>
+<p class="muted">Fais défiler les vidéos, découvre les créateurs et ouvre les mangas.</p>
+<div class="search"><input id="search" placeholder="Rechercher titre, auteur, genre..."><button onclick="doSearch()">🔎 Rechercher</button></div>
+<div class="rotateBar"><button onclick="toggleOrientation()">🔄 Rotation</button><button onclick="requestLandscape()">📱 Paysage</button></div>
+<div class="orientationHint">Tourne aussi physiquement le téléphone pour passer en paysage.</div>
+</div>
+<h2>🎬 Pour toi</h2><div id="homeFeed" class="videoFeed"></div>
+<div class="contentTabs">
+<button class="contentTab active" onclick="filterHomeType('Manga',this)">📖 Manga</button>
+<button class="contentTab" onclick="filterHomeType('Manhwa',this)">📚 Manhwa</button>
+</div>
+<div id="homeGrid" class="grid"></div>
+</section>
+
+
+
+
+<section id="paymentSection" class="hide">
+ <div class="v12-pay">
+  <h2>💳 Paiement</h2>
+  <div class="v12-card">
+   <span class="v12-badge">MangaFinder Premium</span>
+   <div class="v12-price">$0,50 <small>/ mois</small></div>
+   <p>Sans publicité et avec le badge Premium.</p>
+  </div>
+  <div class="v12-card">
+   <h3>🌍 Ton pays</h3>
+   <select id="v12Country" class="v12-select" onchange="updatePaymentMethods()"></select>
+   <p id="v12CountryInfo" class="v12-muted"></p>
+  </div>
+  <div class="v12-card">
+   <h3>💰 Moyen de paiement</h3>
+   <div id="v12Methods"></div>
+   <button class="v12-paybtn" onclick="startTestPayment()">Continuer vers le paiement</button>
+   <p class="v12-muted">Mode test : aucun argent réel n'est prélevé.</p>
+  </div>
+ </div>
+</section>
+
+<section id="premiumSection" class="hide">
+ <div class="premium-card">
+  <h2>✨ MangaFinder Premium</h2>
+  <p>Profite de MangaFinder <b>sans publicité</b>.</p>
+  <div class="premium-price">$0,50 <small>/ mois</small></div>
+  <ul>
+   <li>🚫 Sans publicité</li>
+   <li>⚡ Expérience plus fluide</li>
+   <li>⭐ Badge Premium sur le profil</li>
+  </ul>
+  <button class="premium-btn" onclick="subscribePremium()">✨ Activer Premium — $0,50/mois</button>
+  <p id="premiumStatus" class="muted"></p>
+ </div>
+</section>
+
+<section id="creatorFeedSection" class="hide">
+  <div class="creator-feed-head">
+    <h2>🎬 Pour toi</h2>
+    <p class="muted">Les vidéos publiées par les créateurs de MangaFinder.</p>
+  </div>
+  <div id="creatorFeed" class="creator-feed"></div>
+</section>
+
+<section id="videos" class="hide"><h2>🎬 Vidéos</h2><div id="videoGrid" class="grid"></div></section>
+<section id="reading" class="hide"><h2>📖 Lecture</h2><div id="readGrid" class="grid"></div></section>
+<section id="authors" class="hide"><h2>👤 Auteurs</h2><div id="authorGrid" class="grid"></div></section>
+
+<section id="watch" class="hide">
+<button class="secondary" onclick="go('videos')">← Retour</button>
+<div id="watchBox" class="panel"></div>
+</section>
+
+<section id="profile" class="hide">
+<div class="profile" id="profileBox"></div>
+</section>
+
+<section id="account" class="hide">
+<h2>👤 Ton compte MangaFinder</h2>
+<div id="loginBox" class="panel form">
+<label>Nom d'utilisateur</label><input id="name" placeholder="Ex. @monpseudo">
+<label>E-mail</label><input id="email" type="email" placeholder="ton@email.com">
+<div class="actions">
+<button class="btn" onclick="loginEmail()">📧 Continuer avec e-mail</button>
+<button class="secondary" onclick="loginGoogle()">🔵 Continuer avec Google</button>
+</div>
+<div class="notice">Le bouton Google est une interface de prototype. Pour la version officielle, il sera relié à OAuth Google côté serveur. MangaFinder ne demandera jamais ton mot de passe Google.</div>
+</div>
+<div id="creatorBox" class="hide">
+<div class="profileTop">
+<div class="avatar" id="myAvatar">M</div><div class="profileName" id="myName"></div><div class="handle" id="myHandle"></div>
+<div class="bio">Créateur MangaFinder 🎬 Vidéos • 📖 Lecture</div>
+</div>
+<div class="stats">
+<div class="stat">👥 Abonnés<div id="subStat" class="big">0</div><button class="secondary" onclick="go('followers')" style="margin-top:8px">Voir</button></div>
+<div class="stat">👁️ Vues<div id="viewStat" class="big">0</div></div>
+<div class="stat">❤️ Likes<div id="likeStat" class="big">0</div></div>
+<div class="stat">💰 Revenus estimés<div id="moneyStat" class="big">$0.00</div></div>
+</div>
+<div class="actions"><button class="btn" onclick="go('publish')">➕ Publier</button><button class="secondary" onclick="showMyProfile()">👤 Voir mon profil</button><button class="secondary" onclick="go('payout')">💰 Retraits</button><button class="secondary" onclick="go('creatorDashboard')">📊 Tableau de bord</button><button class="secondary" onclick="go('followers')">👥 Mes abonnés</button><button class="secondary" onclick="go('following')">➡️ Mes abonnements</button></div>
+</div>
+</section>
+
+
+
+<section id="followers" class="hide">
+<h2>👥 Mes abonnés</h2>
+<div class="search"><input id="followerSearch" placeholder="Rechercher un abonné..." oninput="renderFollowers()"></div>
+<div class="panel">
+<div id="followersCount" class="muted"></div>
+<div id="followersList"></div>
+</div>
+</section>
+
+<section id="following" class="hide">
+<h2>👥 Mes abonnements</h2>
+<div class="panel">
+<div id="followingList"></div>
+</div>
+</section>
+
+<section id="notifications" class="hide">
+<h2>🔔 Notifications</h2>
+<div id="notificationList" class="panel"></div>
+</section>
+
+<section id="history" class="hide">
+<h2>🕘 Historique</h2>
+<div id="historyList" class="panel"></div>
+</section>
+
+<section id="saved" class="hide">
+<h2>🔖 Enregistrés</h2>
+<div id="savedList" class="grid"></div>
+</section>
+
+<section id="settings" class="hide">
+<h2>⚙️ Paramètres</h2>
+<div class="panel form">
+<label>Nom d'affichage</label><input id="setName">
+<label>Bio</label><textarea id="setBio"></textarea>
+<label>Langue</label><select id="setLang"><option>Français</option><option>English</option></select>
+<div class="actions"><button class="btn" onclick="saveSettings()">Enregistrer</button><button class="secondary" onclick="logout()">Se déconnecter</button></div>
+<div class="notice">🔒 Sécurité : la vraie connexion Google, les comptes et les données privées devront être gérés par le serveur dans la version publique.</div>
+</div>
+</section>
+
+<section id="creatorDashboard" class="hide">
+<h2>📊 Tableau de bord créateur</h2>
+<div class="stats">
+<div class="stat">👁️ Vues<div id="dashViews" class="big">0</div></div>
+<div class="stat">❤️ Likes<div id="dashLikes" class="big">0</div></div>
+<div class="stat">👥 Abonnés<div id="dashSubs" class="big">0</div></div>
+<div class="stat">💰 Revenus<div id="dashMoney" class="big">$0.00</div></div>
+</div>
+<div class="creatorTools">
+<div class="tool"><b>📈 Engagement</b><p class="muted">Analyse des vues et likes.</p><div class="progress"><i id="engageBar" style="width:0%"></i></div></div>
+<div class="tool"><b>🎬 Vidéos</b><p class="muted" id="dashVideos">0 publication(s)</p></div>
+<div class="tool"><b>📖 Œuvres</b><p class="muted" id="dashWorks">0 publication(s)</p></div>
+</div>
+<div class="panel"><h3>Mes publications</h3><div id="myWorks" class="grid"></div></div>
+</section>
+
+<section id="publish" class="hide">
+<h2>➕ Publier</h2>
+<div class="notice">🎬 Tu peux publier une vidéo, puis suivre ses <b>vues</b> et ses <b>likes</b>. Cette version GitHub Pages est un prototype : les données restent sur cet appareil.</div>
+<div class="panel form">
+<label>Titre</label><input id="title">
+<label>Type</label><select id="type"><option>Manga</option><option>Manhwa</option></select>
+<label>Format</label><select id="format"><option value="lecture">📖 Lecture</option><option value="video">🎬 Vidéo</option></select>
+<label>Genre</label><input id="genre" placeholder="Action, sport, fantasy...">
+<label>Description</label><textarea id="desc"></textarea>
+<label>🏷️ Tags</label><input id="tags" placeholder="action, fantasy, sport">
+<label>👁️ Visibilité</label><select id="visibility"><option value="public">Public</option><option value="private">Privé</option></select>
+<label>🖼️ Miniature (optionnel)</label><button type="button" class="secondary" style="width:100%;margin-bottom:12px" onclick="openThumbnail()">Choisir une miniature</button>
+<div id="thumbPreview" class="mediaPreview">Aucune miniature.</div>
+<label>📱 Média à publier</label><button type="button" class="secondary" style="width:100%;margin-bottom:12px" onclick="openGallery()">🖼️ Ouvrir la galerie / choisir une vidéo ou image</button><div id="mediaPreview" class="mediaPreview">Aucun fichier sélectionné.</div><label>Fichier ou lien du contenu</label><input id="content" placeholder="Fichier sélectionné ou lien vers ton contenu">
+<button class="btn" onclick="publish()">Publier sur MangaFinder</button>
+</div>
+</section>
+
+<section id="payout" class="hide">
+<h2>💰 Méthodes de retrait</h2>
+<div class="panel"><p>Prévoir les méthodes compatibles avec le pays du créateur :</p>
+<div class="actions"><button class="secondary">Fyatu</button><button class="secondary">Visa</button><button class="secondary">Compte bancaire</button><button class="secondary">Mobile Money</button></div>
+<div class="notice">Les vrais paiements seront connectés au backend avec les API officielles. La carte Visa n'est pas elle-même un service de versement.</div></div>
+</section>
+</main>
+
+<div class="bottom">
+<button onclick="go('home')">🏠<br>Accueil</button>
+<button onclick="go('videos')">🎬<br>Vidéos</button>
+<button class="plus" onclick="openGallery()">＋</button>
+<button onclick="go('reading')">📖<br>Lecture</button>
+<button onclick="go('account')">👤<br>Profil</button>
+</div>
+
+<input id="mediaPicker" type="file" accept="image/*,video/*" multiple hidden><input id="thumbPicker" type="file" accept="image/*" hidden>
+<script>
+function openGallery(){
+  document.getElementById("mediaPicker").click();
+}
+let selectedMedia=null;
+document.getElementById("mediaPicker").addEventListener("change",function(){
+  const file=this.files && this.files[0];
+  if(!file)return;
+  selectedMedia={name:file.name,type:file.type,url:URL.createObjectURL(file)};
+  go("publish");
+  document.getElementById("content").value=file.name;
+  const box=document.getElementById("mediaPreview");
+  box.innerHTML=file.type.startsWith("video/") ? '<video controls playsinline src="'+selectedMedia.url+'"></video><small>'+esc(file.name)+'</small>' : '<img src="'+selectedMedia.url+'" alt="Aperçu"><small>'+esc(file.name)+'</small>';
+});
+let works=JSON.parse(localStorage.getItem("mf_works")||"[]");
+let user=JSON.parse(localStorage.getItem("mf_user")||"null");
+let stats=JSON.parse(localStorage.getItem("mf_stats")||'{"subs":0,"views":0,"likes":0}');
+
+function save(){localStorage.setItem("mf_works",JSON.stringify(works));localStorage.setItem("mf_user",JSON.stringify(user));localStorage.setItem("mf_stats",JSON.stringify(stats))}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]})}
+function go(id){document.querySelectorAll("main>section").forEach(function(s){s.classList.add("hide")});document.getElementById(id).classList.remove("hide");if(id==="home")render();if(id==="videos")renderVideos();if(id==="reading")renderReading();if(id==="authors")renderAuthors();if(id==="account")account();if(id==="notifications")renderNotifications();if(id==="history")renderHistory();if(id==="saved")renderSaved();if(id==="followers")renderFollowers();if(id==="following")renderFollowing();if(id==="settings")loadSettings();if(id==="creatorDashboard")openDashboard();scrollTo(0,0)}
+function loginEmail(){let n=document.getElementById("name").value.trim();let e=document.getElementById("email").value.trim();if(!n||!e)return alert("Entre ton nom et ton e-mail.");user={name:n,email:e,provider:"email"};save();account()}
+function loginGoogle(){let n=document.getElementById("name").value.trim()||"Créateur Google";user={name:n,email:"google-login-demo",provider:"google"};save();alert("🔵 Prototype Google : la connexion officielle sera ajoutée avec OAuth.");account()}
+function account(){document.getElementById("loginBox").classList.toggle("hide",!!user);document.getElementById("creatorBox").classList.toggle("hide",!user);if(user){document.getElementById("myName").textContent=user.name;document.getElementById("myHandle").textContent="@"+user.name.toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,20);document.getElementById("myAvatar").textContent=user.name.charAt(0).toUpperCase();const mine=works.filter(function(w){return w.author===user.name});const myViews=mine.reduce((a,w)=>a+(w.views||0),0);const myLikes=mine.reduce((a,w)=>a+(w.likes||0),0);document.getElementById("subStat").textContent=getFollowers().length||stats.subs;document.getElementById("viewStat").textContent=myViews;document.getElementById("likeStat").textContent=myLikes;document.getElementById("moneyStat").textContent="$"+(getFollowers().length*.90).toFixed(2)}}
+function hasLiked(id){return JSON.parse(localStorage.getItem("mf_liked")||"[]").includes(String(id))}
+function likeLabel(id,w){return (hasLiked(id)?"❤️ Aimé":"🤍 J’aime")+" "+(w.likes||0)}
+function makeCard(w){
+ return '<div class="card"><span class="pill">'+esc(w.type)+'</span> <span class="pill">'+(w.format==="video"?"🎬 Vidéo":"📖 Lecture")+'</span><h3>'+esc(w.title)+'</h3><p>'+esc(w.description)+'</p><small class="muted">✍️ '+esc(w.author)+'</small>'+
+ (w.format==="video"?'<div class="videoStats"><button class="'+(hasLiked(w.id)?"liked":"")+'" onclick="like('+w.id+')">'+likeLabel(w.id,w)+'</button><button onclick="watch('+w.id+')">👁️ '+(w.views||0)+' vues</button></div>':'')+
+ '<button onclick="openWork('+w.id+')">Ouvrir</button><button onclick="toggleSave('+w.id+')">🔖 Enregistrer</button></div>'
+}
+function makeVideo(w){
+ return '<div class="videoCard"><div class="thumb">▶</div><div class="videoInfo"><h3>'+esc(w.title)+'</h3><div class="videoMeta">✍️ '+esc(w.author)+'</div><div class="videoStats"><button class="'+(hasLiked(w.id)?"liked":"")+'" onclick="like('+w.id+')">'+likeLabel(w.id,w)+'</button><button onclick="watch('+w.id+')">👁️ '+(w.views||0)+' vues</button></div><button class="btn" style="margin-top:10px;width:100%" onclick="watch('+w.id+')">▶ Regarder</button></div></div>'
+}
+
+
+let selectedThumbnail=null;
+function openThumbnail(){document.getElementById("thumbPicker").click()}
+document.getElementById("thumbPicker").addEventListener("change",function(){
+ const f=this.files&&this.files[0]; if(!f)return;
+ selectedThumbnail={name:f.name,url:URL.createObjectURL(f)};
+ document.getElementById("thumbPreview").innerHTML='<img src="'+selectedThumbnail.url+'" alt="Miniature"><small>'+esc(f.name)+'</small>';
+});
+function addNotification(text){
+ const n=JSON.parse(localStorage.getItem("mf_notifications")||"[]");
+ n.unshift({id:Date.now(),text:text,read:false,date:new Date().toLocaleString()});
+ localStorage.setItem("mf_notifications",JSON.stringify(n.slice(0,50))); updateNotifBadge();
+}
+function updateNotifBadge(){
+ const n=JSON.parse(localStorage.getItem("mf_notifications")||"[]");
+ const unread=n.filter(x=>!x.read).length; const b=document.getElementById("notifBadge");
+ if(b){b.textContent=unread;b.style.display=unread?"inline-block":"none"}
+}
+function renderNotifications(){
+ const n=JSON.parse(localStorage.getItem("mf_notifications")||"[]");
+ document.getElementById("notificationList").innerHTML=n.map(x=>'<div class="notification '+(!x.read?'unread':'')+'">🔔 '+esc(x.text)+'<br><small class="muted">'+esc(x.date)+'</small></div>').join("")||'<div class="empty">Aucune notification.</div>';
+ n.forEach(x=>x.read=true);localStorage.setItem("mf_notifications",JSON.stringify(n));updateNotifBadge();
+}
+function toggleNotifications(){closeMenus();go("notifications")}
+function toggleMenu(){document.getElementById("menuPanel").classList.toggle("hide")}
+function closeMenus(){document.getElementById("menuPanel").classList.add("hide")}
+function reportApp(){const x=prompt("Décris le problème :");if(x){addNotification("Ton signalement a été enregistré.");alert("Merci, ton signalement a été enregistré dans le prototype.")}}
+function loadSettings(){if(!user)return;document.getElementById("setName").value=user.name||"";document.getElementById("setBio").value=user.bio||""}
+function saveSettings(){
+ if(!user)return alert("Connecte-toi d'abord.");
+ user.name=document.getElementById("setName").value.trim()||user.name;
+ user.bio=document.getElementById("setBio").value.trim();
+ save();alert("✅ Profil mis à jour.");account();
+}
+function logout(){user=null;save();alert("Tu es déconnecté.");go("home")}
+function renderHistory(){
+ const h=JSON.parse(localStorage.getItem("mf_history")||"[]");
+ document.getElementById("historyList").innerHTML=h.map(x=>'<div class="historyItem"><div class="miniThumb">▶</div><div><b>'+esc(x.title)+'</b><br><small class="muted">✍️ '+esc(x.author)+' • '+esc(x.date)+'</small></div></div>').join("")||'<div class="empty">Ton historique est vide.</div>';
+}
+function addHistory(w){
+ const h=JSON.parse(localStorage.getItem("mf_history")||"[]");
+ h.unshift({title:w.title,author:w.author,date:new Date().toLocaleString()});
+ localStorage.setItem("mf_history",JSON.stringify(h.slice(0,100)));
+}
+function toggleSave(id){
+ let s=JSON.parse(localStorage.getItem("mf_saved")||"[]");
+ if(s.includes(id)){s=s.filter(x=>x!==id);alert("🔖 Retiré des enregistrements")}
+ else{s.push(id);alert("🔖 Enregistré")}
+ localStorage.setItem("mf_saved",JSON.stringify(s));
+}
+function renderSaved(){
+ const s=JSON.parse(localStorage.getItem("mf_saved")||"[]");
+ document.getElementById("savedList").innerHTML=works.filter(w=>s.includes(w.id)).map(makeCard).join("")||'<div class="empty">Aucun contenu enregistré.</div>';
+}
+function openDashboard(){
+ if(!user)return alert("Crée ton compte d'abord.");
+ const mine=works.filter(w=>w.author===user.name);
+ document.getElementById("dashViews").textContent=mine.reduce((a,w)=>a+(w.views||0),0);
+ document.getElementById("dashLikes").textContent=mine.reduce((a,w)=>a+(w.likes||0),0);
+ document.getElementById("dashSubs").textContent=stats.subs;
+ document.getElementById("dashMoney").textContent="$"+(stats.subs*.90).toFixed(2);
+ document.getElementById("dashVideos").textContent=mine.filter(w=>w.format==="video").length+" vidéo(s)";
+ document.getElementById("dashWorks").textContent=mine.length+" publication(s)";
+ document.getElementById("engageBar").style.width=Math.min(100,(mine.reduce((a,w)=>a+(w.likes||0),0)/Math.max(1,mine.reduce((a,w)=>a+(w.views||0),0))*100))+"%";
+ document.getElementById("myWorks").innerHTML=mine.map(makeCard).join("")||'<div class="empty">Tu n’as encore rien publié.</div>';
+}
+
+function getFollowers(){
+  return JSON.parse(localStorage.getItem("mf_followers")||"[]");
+}
+function getFollowing(){
+  return JSON.parse(localStorage.getItem("mf_following")||"[]");
+}
+function renderFollowers(){
+  const box=document.getElementById("followersList"); if(!box)return;
+  const q=(document.getElementById("followerSearch")?.value||"").toLowerCase();
+  const arr=getFollowers().filter(x=>!q || (x.name+" "+x.handle).toLowerCase().includes(q));
+  document.getElementById("followersCount").textContent=getFollowers().length+" abonné(s)";
+  box.innerHTML=arr.map(function(x){
+    return '<div class="followRow"><div class="followAvatar">'+esc(x.name.charAt(0).toUpperCase())+'</div><div class="followInfo"><b>'+esc(x.name)+'</b><br><small>'+esc(x.handle)+'</small></div><button class="secondary" onclick="viewFollower(\''+esc(x.name).replace(/'/g,"\\'")+'\')">Voir</button></div>';
+  }).join("")||'<div class="empty">Aucun abonné pour le moment.</div>';
+}
+function renderFollowing(){
+  const box=document.getElementById("followingList"); if(!box)return;
+  const arr=getFollowing();
+  box.innerHTML=arr.map(function(x){
+    return '<div class="followRow"><div class="followAvatar">'+esc(x.name.charAt(0).toUpperCase())+'</div><div class="followInfo"><b>'+esc(x.name)+'</b><br><small>'+esc(x.handle)+'</small></div><button class="secondary" onclick="profile(\''+esc(x.name).replace(/'/g,"\\'")+'\')">Profil</button></div>';
+  }).join("")||'<div class="empty">Tu ne suis encore personne.</div>';
+}
+function viewFollower(name){profile(name)}
+function recordFollow(){
+  if(!user)return;
+  const arr=getFollowers();
+  if(!arr.some(x=>x.name===user.name)){
+    // Prototype: the current demo user is registered as a follower.
+    arr.push({name:user.name,handle:"@"+user.name.toLowerCase().replace(/[^a-z0-9_]/g,"")});
+    localStorage.setItem("mf_followers",JSON.stringify(arr));
+  }
+}
+function renderHomeFeed(){
+  const feed=document.getElementById("homeFeed"); if(!feed)return;
+  const vids=works.filter(w=>w.format==="video" && (w.visibility!=="private" || (user && w.author===user.name)));
+  if(!vids.length){feed.innerHTML='<div class="empty">Aucune vidéo pour le moment.<br>Les créateurs pourront publier avec ＋.</div>';return}
+  feed.innerHTML=vids.map(function(w){
+    const media=(w.mediaUrl&&w.mediaType&&w.mediaType.startsWith("video/"))?'<video src="'+esc(w.mediaUrl)+'" controls playsinline preload="metadata"></video>':'<div style="font-size:70px">▶️</div>';
+    return '<article class="feedItem">'+media+'<div class="feedOverlay"><div class="feedTitle">'+esc(w.title)+'</div><div class="feedAuthor">✍️ '+esc(w.author)+' • 👁️ '+(w.views||0)+' vues • '+(w.likes||0)+' ❤️</div><p>'+esc(w.description)+'</p></div><div class="feedActions"><button class="'+(hasLiked(w.id)?"liked":"")+'" onclick="like('+w.id+')">'+(hasLiked(w.id)?"❤️":"🤍")+'</button><button onclick="comment()">💬</button><button onclick="subscribe()">👥</button><button onclick="share()">🔗</button><button onclick="watch('+w.id+')">▶</button></div></article>';
+  }).join("");
+}
+function toggleOrientation(){document.body.classList.toggle("landscapeView")}
+async function requestLandscape(){
+  try{
+    if(document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+    if(screen.orientation && screen.orientation.lock) await screen.orientation.lock("landscape");
+  }catch(e){alert("La rotation automatique dépend du navigateur. Tu peux tourner le téléphone manuellement.")}
+}
+
+function filterHomeType(type,btn){
+  document.querySelectorAll(".contentTab").forEach(function(x){x.classList.remove("active")});
+  if(btn)btn.classList.add("active");
+  const list=works.filter(function(w){return w.type===type});
+  document.getElementById("homeGrid").innerHTML=list.map(makeCard).join("")||
+    '<div class="empty">Aucun '+type.toLowerCase()+' publié pour le moment.</div>';
+}
+function render(){renderHomeFeed();filterHomeType("Manga",document.querySelector(".contentTab"));}
+function renderVideos(){document.getElementById("videoGrid").innerHTML=works.filter(function(w){return w.format==="video"}).map(makeVideo).join("")||'<div class="empty">Aucune vidéo publiée.</div>'}
+function renderReading(){document.getElementById("readGrid").innerHTML=works.filter(function(w){return w.format==="lecture"}).map(makeCard).join("")||'<div class="empty">Aucun manga ou manhwa publié.</div>'}
+function renderAuthors(){let a=[...new Set(works.map(function(w){return w.author}))];document.getElementById("authorGrid").innerHTML=a.map(function(x){return '<div class="card"><h3>👤 '+esc(x)+'</h3><p>'+works.filter(function(w){return w.author===x}).length+' publication(s)</p><button onclick="profile(\''+esc(x).replace(/'/g,"\\'")+'\')">Voir le profil</button></div>'}).join("")||'<div class="empty">Aucun auteur pour le moment.</div>'}
+function publish(){if(!user)return alert("Crée d'abord ton compte.");let t=document.getElementById("title").value.trim();if(!t)return alert("Ajoute un titre.");works.unshift({id:Date.now(),title:t,type:document.getElementById("type").value,format:document.getElementById("format").value,genre:document.getElementById("genre").value||"Nouveau",tags:document.getElementById("tags").value||"",visibility:document.getElementById("visibility").value,thumbnailUrl:selectedThumbnail?selectedThumbnail.url:"",description:document.getElementById("desc").value||"Nouvelle publication MangaFinder.",content:document.getElementById("content").value||"",author:user.name,views:0,likes:0,mediaUrl:selectedMedia?selectedMedia.url:"",mediaType:selectedMedia?selectedMedia.type:""});save();selectedMedia=null;alert("✅ Publication ajoutée à MangaFinder.");go("home")}
+function recordView(id){
+ const key=String(id);
+ let seen=JSON.parse(sessionStorage.getItem("mf_seen_views")||"[]").map(String);
+ if(seen.includes(key))return false;
+ let w=works.find(function(x){return String(x.id)===key});
+ if(!w)return false;
+ w.views=(w.views||0)+1;
+ seen.push(key);
+ sessionStorage.setItem("mf_seen_views",JSON.stringify(seen));
+ save();
+ return true;
+}
+function openWork(id){let w=works.find(function(x){return x.id===id});if(!w)return;if(w.format==="video"){watch(id);return}recordView(id);addHistory(w);document.getElementById("watchBox").innerHTML='<h2>'+esc(w.title)+'</h2><p class="muted">📖 '+esc(w.type)+' • ✍️ '+esc(w.author)+'</p><p>'+esc(w.description)+'</p><div class="actions"><button class="secondary" onclick="like('+w.id+')">❤️ J’aime</button><button class="secondary" onclick="comment()">💬 Commenter</button><button class="secondary" onclick="subscribe()">👥 S’abonner</button></div><div class="notice">📖 Ici, le créateur pourra ajouter les pages de ses chapitres dans la version serveur.</div>';go("watch")}
+function watch(id){let w=works.find(function(x){return x.id===id});if(!w)return;recordView(id);addHistory(w);document.getElementById("watchBox").innerHTML='<div class="player">▶</div><div class="watchTitle">'+esc(w.title)+'</div><p class="muted">✍️ '+esc(w.author)+' • 👁️ '+w.views+' vues</p><p>'+esc(w.description)+'</p><div class="actions"><button class="secondary" onclick="like('+w.id+')">❤️ J’aime</button><button class="secondary" onclick="comment()">💬 Commenter</button><button class="secondary" onclick="subscribe()">👥 S’abonner</button><button class="secondary" onclick="share()">🔗 Partager</button><button class="secondary" onclick="toggleSave(id)">🔖 Enregistrer</button><button class="secondary" onclick="reportApp()">🚩 Signaler</button></div><div class="notice">🎬 Lecteur vidéo de démonstration. Dans la version en ligne, la vidéo sera servie depuis le stockage sécurisé de MangaFinder.</div>';go("watch")}
+function like(id){
+ let liked=JSON.parse(localStorage.getItem("mf_liked")||"[]").map(String);
+ const key=String(id);
+ let w=works.find(function(x){return String(x.id)===key});
+ if(!w)return;
+ if(liked.includes(key)){
+   liked=liked.filter(x=>x!==key);
+   w.likes=Math.max(0,(w.likes||0)-1);
+ }else{
+   liked.push(key);
+   w.likes=(w.likes||0)+1;
+   addNotification("❤️ Tu as aimé une publication.");
+ }
+ localStorage.setItem("mf_liked",JSON.stringify(liked));
+ save();
+ render();
+ if(!document.getElementById("videos").classList.contains("hide"))renderVideos();
+ if(!document.getElementById("creatorDashboard").classList.contains("hide"))openDashboard();
+}
+function subscribe(){
+  stats.subs++;
+  recordFollow();
+  addNotification("Nouvel abonnement.");
+  save();
+  alert("👥 Abonnement enregistré");
+}
+function comment(){let x=prompt("Ton commentaire :");if(x){addNotification("Nouveau commentaire publié.");alert("💬 Commentaire enregistré.");}}
+function share(){alert("🔗 Partage prêt à être relié au serveur")}
+function profile(name){let list=works.filter(function(w){return w.author===name});document.getElementById("profileBox").innerHTML='<div class="profileTop"><div class="avatar">'+esc(name.charAt(0).toUpperCase())+'</div><div class="profileName">'+esc(name)+'</div><div class="handle">@'+esc(name.toLowerCase().replace(/[^a-z0-9_]/g,""))+'</div><div class="profileStats"><div><b>0</b><span>Suivis</span></div><div><b>'+stats.subs+'</b><span>Followers</span></div><div><b>'+stats.likes+'</b><span>J’aime</span></div></div><div class="bio">Créateur MangaFinder 🎬 Vidéos • 📖 Lecture</div><div class="actions" style="justify-content:center"><button class="btn" onclick="subscribe()">👥 S’abonner</button><button class="secondary" onclick="share()">🔗 Partager</button><button class="secondary" onclick="toggleSave(w.id)">🔖 Enregistrer</button><button class="secondary" onclick="reportApp()">🚩 Signaler</button></div></div><div class="tabs"><button class="tab active">🎬 Publications</button><button class="tab">❤️ J’aime</button></div><div class="grid" style="margin-top:20px">'+list.map(function(w){return w.format==="video"?makeVideo(w):makeCard(w)}).join("")+'</div>';go("profile")}
+function showMyProfile(){if(user)profile(user.name)}
+function doSearch(){let q=document.getElementById("search").value.toLowerCase().trim();let r=works.filter(function(w){return (w.title+" "+w.author+" "+w.genre+" "+w.description).toLowerCase().includes(q)});document.getElementById("homeGrid").innerHTML=r.map(makeCard).join("")||'<div class="empty">Aucun résultat.</div>';go("home")}
+render();updateNotifBadge();
+</script>
+
+<script id="creatorFeedScript">
+function formatCount(n){
+  n=Number(n||0);
+  if(n>=1000000)return (n/1000000).toFixed(1).replace(".",".")+" M";
+  if(n>=1000)return (n/1000).toFixed(n>=10000?0:1).replace(".",".")+" K";
+  return String(n);
+}
+function creatorInitial(name){
+  return esc((name||"C").trim().charAt(0).toUpperCase());
+}
+function renderCreatorFeed(){
+  const box=document.getElementById("creatorFeed");
+  const sec=document.getElementById("creatorFeedSection");
+  if(!box||!sec)return;
+  const videos=(works||[]).filter(function(w){return w.format==="video";});
+  if(!videos.length){
+    box.innerHTML='<div class="panel" style="padding:35px;text-align:center"><div style="font-size:50px">🎬</div><h3>Aucune vidéo pour le moment</h3><p class="muted">Les auteurs pourront publier leurs vidéos avec le bouton +.</p></div>';
+    return;
+  }
+  box.innerHTML=videos.slice().reverse().map(function(w){
+    const liked=hasLiked(w.id);
+    return '<article class="creator-video">'+
+      '<div class="video-stage">'+
+        (w.media?'<video src="'+esc(w.media)+'" controls playsinline></video>':'<div class="video-placeholder">▶️</div>')+
+        '<div class="creator-gradient"></div>'+
+        '<div class="creator-top"><div class="creator-tabs"><span>Suivis</span><span class="active">Pour toi</span></div><button class="creator-search">⌕</button></div>'+
+        '<div class="creator-side">'+
+          '<button class="'+(liked?"liked":"")+'" onclick="like('+w.id+');renderCreatorFeed()">❤️</button><small>'+formatCount(w.likes||0)+'</small>'+
+          '<button onclick="comment()">💬</button><small>Commenter</small>'+
+          '<button onclick="toggleSave('+w.id+')">🔖</button><small>Enregistrer</small>'+
+          '<button onclick="share()">↗</button><small>Partager</small>'+
+        '</div>'+
+        '<div class="creator-bottom">'+
+          '<div class="creator-user"><div class="creator-avatar">'+creatorInitial(w.author)+'</div><span class="creator-name">@'+esc(w.author||"createur")+'</span><button class="creator-follow" onclick="subscribe()">Suivre</button></div>'+
+          '<p class="creator-caption">'+esc(w.description||w.title||"Nouvelle vidéo MangaFinder")+'</p>'+
+          '<div class="creator-tags">#manga #manhwa #mangafinder</div>'+
+          '<div class="creator-music">🎵 Son original • 👁️ '+formatCount(w.views||0)+' vues</div>'+
+        '</div>'+
+      '</div>'+
+    '</article>';
+  }).join("");
+}
+function openCreatorFeed(){
+  document.querySelectorAll("main section").forEach(function(s){s.classList.add("hide")});
+  const sec=document.getElementById("creatorFeedSection");
+  if(sec)sec.classList.remove("hide");
+  renderCreatorFeed();
+  window.scrollTo(0,0);
+}
+</script>
+
+
+<div id="creatorPublishModal" class="v10-modal" onclick="if(event.target===this)closeCreatorPublish()">
+  <div class="v10-sheet">
+    <h2>🎬 Publier une vidéo</h2>
+    <label>Nom du créateur</label>
+    <input id="v10Author" class="v10-input" placeholder="Ex. MangaFan" maxlength="40">
+    <label>Titre</label>
+    <input id="v10Title" class="v10-input" placeholder="Titre de ta vidéo" maxlength="80">
+    <label>Description</label>
+    <textarea id="v10Description" class="v10-textarea" placeholder="Décris ta vidéo..."></textarea>
+    <label>Vidéo</label>
+    <input id="v10VideoFile" class="v10-input" type="file" accept="video/*" onchange="previewCreatorVideo(event)">
+    <video id="v10Preview" class="v10-preview" controls playsinline></video>
+    <div class="v10-actions">
+      <button class="v10-btn v10-secondary" onclick="closeCreatorPublish()">Annuler</button>
+      <button class="v10-btn v10-primary" onclick="publishCreatorVideo()">Publier</button>
+    </div>
+    <p class="muted">Prototype : la vidéo est enregistrée dans le navigateur de cet appareil.</p>
+  </div>
+</div>
+
+
+<script id="v10CreatorPublishScript">
+function openCreatorPublish(){
+  const m=document.getElementById("creatorPublishModal");
+  if(m)m.classList.add("open");
+}
+function closeCreatorPublish(){
+  const m=document.getElementById("creatorPublishModal");
+  if(m)m.classList.remove("open");
+}
+function previewCreatorVideo(e){
+  const f=e.target.files&&e.target.files[0], p=document.getElementById("v10Preview");
+  if(!f||!p)return;
+  p.src=URL.createObjectURL(f); p.style.display="block";
+}
+function publishCreatorVideo(){
+  const file=document.getElementById("v10VideoFile").files[0];
+  const author=(document.getElementById("v10Author").value||"Créateur").trim();
+  const title=(document.getElementById("v10Title").value||"Nouvelle vidéo").trim();
+  const description=(document.getElementById("v10Description").value||title).trim();
+  if(!file){alert("Choisis une vidéo.");return;}
+  const reader=new FileReader();
+  reader.onload=function(){
+    const w={
+      id:Date.now(),
+      format:"video",
+      author:author,
+      title:title,
+      description:description,
+      media:reader.result,
+      likes:0,
+      views:0,
+      createdAt:Date.now()
+    };
+    try{
+      if(typeof works==="undefined") window.works=[];
+      works.push(w);
+      localStorage.setItem("mangafinder_works",JSON.stringify(works));
+      closeCreatorPublish();
+      if(typeof renderCreatorFeed==="function")renderCreatorFeed();
+      if(typeof openCreatorFeed==="function")openCreatorFeed();
+      alert("✅ Vidéo publiée !");
+    }catch(err){
+      alert("La vidéo est trop volumineuse pour le stockage local. Pour une vraie plateforme, il faudra un serveur/base de données.");
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function creatorRevenue(w){
+  // Prototype uniquement : estimation locale, pas un paiement réel.
+  const views=Number(w.views||0);
+  return (views/1000*0.50).toFixed(2);
+}
+function showCreatorRevenue(){
+  const videos=(works||[]).filter(w=>w.format==="video");
+  const views=videos.reduce((s,w)=>s+Number(w.views||0),0);
+  const likes=videos.reduce((s,w)=>s+Number(w.likes||0),0);
+  const revenue=videos.reduce((s,w)=>s+Number(creatorRevenue(w)),0).toFixed(2);
+  alert("💰 Revenus estimés\\n\\nVues : "+formatCount(views)+"\\nLikes : "+formatCount(likes)+"\\nRevenus estimés : $"+revenue+"\\n\\nPrototype : ce montant n'est pas un paiement réel.");
+}
+</script>
+
+
+<script id="v10PlusListener">
+document.addEventListener("DOMContentLoaded",function(){
+  document.querySelectorAll("button").forEach(function(b){
+    const t=(b.textContent||"").trim();
+    if(t==="+" || t.includes("➕")) b.addEventListener("click",function(e){e.stopPropagation();openCreatorPublish();});
+  });
+});
+</script>
+
+
+<script id="premiumScript">
+function isPremium(){return localStorage.getItem("mangafinder_premium")==="1";}
+function subscribePremium(){
+  // Prototype: does NOT charge money yet.
+  const ok=confirm("MangaFinder Premium coûte $0,50/mois. Dans cette version prototype, aucun paiement réel ne sera effectué. Activer le mode Premium ?");
+  if(!ok)return;
+  localStorage.setItem("mangafinder_premium","1");
+  updatePremiumUI();
+  alert("✨ Mode Premium activé sur cet appareil.");
+}
+function updatePremiumUI(){
+  const s=document.getElementById("premiumStatus");
+  if(s)s.innerHTML=isPremium()?'<span class="premium-on">✓ Premium actif — sans publicité</span>':"";
+}
+function openPremium(){
+  document.querySelectorAll("main section").forEach(function(s){s.classList.add("hide")});
+  const s=document.getElementById("premiumSection");
+  if(s)s.classList.remove("hide");
+  updatePremiumUI();
+  window.scrollTo(0,0);
+}
+document.addEventListener("DOMContentLoaded",updatePremiumUI);
+</script>
+
+<script id="v12PaymentScript">
+const MF_PAYMENT_METHODS={
+ "CD":{name:"RDC",currency:"USD",methods:[
+   ["fyatu","Fyatu","Airtel Money / Orange Money / M-Pesa"],
+   ["airtel","Airtel Money","Mobile Money"],
+   ["orange","Orange Money","Mobile Money"],
+   ["mpesa","M-Pesa","Mobile Money"]
+ ]},
+ "FR":{name:"France",currency:"EUR",methods:[
+   ["card","Carte bancaire","Visa / Mastercard selon disponibilité"],
+   ["applepay","Apple Pay","Selon appareil et compte"],
+   ["googlepay","Google Pay","Selon appareil et compte"],
+   ["sepa","SEPA","Prélèvement bancaire"]
+ ]},
+ "BE":{name:"Belgique",currency:"EUR",methods:[
+   ["card","Carte bancaire","Visa / Mastercard selon disponibilité"],
+   ["bancontact","Bancontact","Paiement local"],
+   ["applepay","Apple Pay","Selon appareil et compte"],
+   ["googlepay","Google Pay","Selon appareil et compte"]
+ ]},
+ "US":{name:"États-Unis",currency:"USD",methods:[
+   ["card","Carte bancaire","Visa / Mastercard selon disponibilité"],
+   ["applepay","Apple Pay","Selon appareil et compte"],
+   ["googlepay","Google Pay","Selon appareil et compte"]
+ ]},
+ "CA":{name:"Canada",currency:"CAD",methods:[
+   ["card","Carte bancaire","Selon disponibilité"],
+   ["applepay","Apple Pay","Selon appareil et compte"],
+   ["googlepay","Google Pay","Selon appareil et compte"]
+ ]},
+ "GB":{name:"Royaume-Uni",currency:"GBP",methods:[
+   ["card","Carte bancaire","Selon disponibilité"],
+   ["applepay","Apple Pay","Selon appareil et compte"],
+   ["googlepay","Google Pay","Selon appareil et compte"]
+ ]},
+ "DE":{name:"Allemagne",currency:"EUR",methods:[
+   ["card","Carte bancaire","Selon disponibilité"],
+   ["applepay","Apple Pay","Selon appareil et compte"],
+   ["googlepay","Google Pay","Selon appareil et compte"]
+ ]}
+};
+
+function detectMFcountry(){
+ const saved=localStorage.getItem("mf_country");
+ if(saved && MF_PAYMENT_METHODS[saved])return saved;
+ const lang=(navigator.language||"").toLowerCase();
+ if(lang.includes("-fr"))return "FR";
+ if(lang.includes("-be"))return "BE";
+ if(lang.includes("-us"))return "US";
+ if(lang.includes("-ca"))return "CA";
+ if(lang.includes("-gb"))return "GB";
+ if(lang.includes("-de"))return "DE";
+ return "CD"; // défaut pour le prototype MangaFinder
+}
+function setupPaymentPage(){
+ const s=document.getElementById("v12Country"); if(!s)return;
+ s.innerHTML=Object.entries(MF_PAYMENT_METHODS).map(([k,v])=>'<option value="'+k+'">'+v.name+'</option>').join("");
+ s.value=detectMFcountry(); updatePaymentMethods();
+}
+function updatePaymentMethods(){
+ const s=document.getElementById("v12Country"); const box=document.getElementById("v12Methods");
+ if(!s||!box)return;
+ const c=MF_PAYMENT_METHODS[s.value]; localStorage.setItem("mf_country",s.value);
+ document.getElementById("v12CountryInfo").textContent="Devise locale : "+c.currency;
+ box.innerHTML=c.methods.map(function(m,i){
+   return '<label class="v12-method"><input type="radio" name="mfPayMethod" value="'+m[0]+'" '+(i===0?"checked":"")+'><span><b>'+m[1]+'</b><span class="v12-muted">'+m[2]+'</span></span></label>';
+ }).join("");
+}
+function openPayment(){
+ document.querySelectorAll("main section").forEach(s=>s.classList.add("hide"));
+ const s=document.getElementById("paymentSection"); if(s)s.classList.remove("hide");
+ setupPaymentPage(); window.scrollTo(0,0);
+}
+function startTestPayment(){
+ const country=document.getElementById("v12Country").value;
+ const method=document.querySelector('input[name="mfPayMethod"]:checked');
+ if(!method){alert("Choisis un moyen de paiement.");return;}
+ alert("🧪 Paiement TEST\\n\\nPays : "+MF_PAYMENT_METHODS[country].name+"\\nMoyen : "+method.value+"\\nMontant : 0,50 $/mois\\n\\nAucun argent réel ne sera prélevé.");
+}
+document.addEventListener("DOMContentLoaded",setupPaymentPage);
+</script>
+</body>
+</html>
